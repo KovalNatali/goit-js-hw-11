@@ -1,6 +1,8 @@
 import { animalsService} from "./api";
 import { createMarkup } from "./gallery";
 import Notiflix from 'notiflix';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const refs = {
      formEl: document.querySelector('.search-form'),
@@ -9,6 +11,8 @@ const refs = {
 }
 
 refs.formEl.addEventListener('submit', goSearch)
+
+let simplelightbox = new SimpleLightbox('.gallery a');
 
 let currentPage = 1;
 let query = '';
@@ -29,7 +33,7 @@ if (query === "") {
 
     currentPage = 1;
 
-    const {hits, totalHits} = await animalsService(query)
+    const {hits, totalHits} = await animalsService(query);
 
        console.log(hits,totalHits) 
        if (totalHits) 
@@ -40,9 +44,10 @@ if (query === "") {
            return
        } 
    
-       const marcup = await createMarkup(hits)
-       refs.galleryEl.innerHTML= marcup
-       refs.buttonMore.hidden = false
+       const marcup = await createMarkup(hits);
+       refs.galleryEl.innerHTML= marcup;
+       simplelightbox.refresh();
+       refs.buttonMore.hidden = false;
 
    }
    catch (err) {
@@ -56,15 +61,16 @@ if (query === "") {
     refs.buttonMore.addEventListener('click', onloadMore);
   
    async function onloadMore () {
-        currentPage += 1  
-         try {
+       currentPage += 1  
+       try {
             const {hits,totalHits} = await animalsService(query,currentPage)
              refs.galleryEl.innerHTML = createMarkup(hits)
-            //  if (hits.currentPage < totalHits) {
-            //     refs.buttonMore.hidden = true
-            //     Notiflix.Notify.failure('We are sorry, but you have reached the end of search results.');
-            //  }
-            
+             simplelightbox.refresh();
+             if (totalHits <= currentPage*40) {
+                refs.buttonMore.hidden = true
+                Notiflix.Notify.failure('We are sorry, but you have reached the end of search results.');
+            }
+           
         }catch (err) {
             console.log(err)}
             
